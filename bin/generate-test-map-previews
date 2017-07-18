@@ -9,8 +9,7 @@ print_preview_image_urls=
 vername=
 verbose_flag=
 verbose=
-# scales="000.5 001.0 002.0 004.0 008.0 016.0 032.0 100.0"
-scales=004.0
+scales="000.5 001.0 002.0 004.0 008.0 016.0 032.0 100.0"
 offset=0,0
 
 while [ $# -gt 0 ]
