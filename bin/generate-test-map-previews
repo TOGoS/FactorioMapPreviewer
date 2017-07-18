@@ -73,7 +73,7 @@ do
 			   --map-preview-scale="$scale" \
 			   --map-preview-size="$map_width" \
 			   --map-preview-offset="$offset" \
-			   >$"logfile" 2>&1 && (
+			   >"$logfile" 2>&1 && (
 	    if [ -n "$verbose" ]
 	    then
 		cat "$logfile"
@@ -83,7 +83,7 @@ do
 	    cat "$logfile" >&2
 	    exit 1
 	)
-	if $print_preview_image_urls ; then
+	if [ -n "$print_preview_image_urls" ] ; then
 	    echo "file://$(pwd)/${outfile}"
 	fi
     else
