@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+
+// Generates 'map-previews/maplist.js'
+// from output of scripts/generate-test-map-previews
+// so that you can visit map-previews/viewer.html and have a nice time looking at maps
+
+let fs = require('fs');
+
+let readDir = function(dir) {
+	return new Promise( (resolve,reject) => {
+		fs.readdir(dir, (error,entries) => {
+			if( error ) reject(error);
+			else resolve(entries);
+		});
+	});
+};
+
+let stat = function(file) {
+	return new Promise( (resolve,reject) => {
+		fs.stat(file, (error,stat) => {
+			if(error) reject(error);
+			else resolve(stat);
+		});
+	});
+}
+
+readDir("map-previews").then( (entries) => {
+	let names = [];
+	let prom = Promise.resolve();
+	for( let e in entries ) {
+		let fn = entries[e];
+		let path = "map-previews/"+fn;
+		prom = prom.then( () => {
+			return stat(path).then( (stat) => {
+				// console.log(path + " -> "+(stat.isDirectory() ? "(dir)" : "(fiel)"), stat);
+				if( stat.isDirectory() ) {
+					names.push(fn);
+				}
+			});
+		});
+	}
+	return prom.then( () => names );
+}).then( names => {
+	process.stdout.write("window.mapNames = "+JSON.stringify(names, null, "\t")+";\n");
+}).catch( (err) => {
+	process.stderr.write(err.stack);
+	process.exitCode = 1;
+});

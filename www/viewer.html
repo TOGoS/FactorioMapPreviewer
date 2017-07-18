@@ -1,0 +1,89 @@
+<html>
+<head>
+<style>
+html, body {
+	background: black;
+	color: silver;
+	font-family: sans-serif;
+	margin: 0;
+	padding: 0;
+}
+#info {
+	position: fixed;
+	margin: 16px;
+}
+#map-container {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<div id="info">
+<div>Coords: <span id="coords">0,0</span></div>
+<div>Scale: <span id="scale">1</span></div>
+<div>Map: <span id="map-name">??</span></div>
+</div>
+
+<div id="map-container">
+<img id="map" width="1024" height="1024"/>
+</div>
+
+<script type="text/javascript" src="viewer.js"></script>
+<script type="text/javascript" src="maplist.js"></script>
+<script type="text/javascript">
+	(function() {
+		var mapInfo = {};
+		if( typeof mapNames == 'undefined' ) {
+			alert(
+				"No map names; probably maplist.js is missing.  " +
+				"Generate some previews with scripts/generate-test-map-previews " +
+				"and then 'make map-previews/maplist.js'"
+			);
+		}
+		for( let n in mapNames ) {
+			let mapName = mapNames[n];
+			let scales = {};
+			for( let s in Viewer.standardScales ) {
+				let scale = Viewer.standardScales[s];
+				scales[scale] = {
+					imagePath: mapName + "/" + mapName + ".scale" + Viewer.formatScale(scale) + ".png"
+				};
+			}
+			mapInfo[mapName] = { scales };
+		}
+		var viewer = new Viewer;
+		viewer.mapImg = document.getElementById("map");
+		viewer.coordsSpan = document.getElementById("coords");
+		viewer.scaleSpan = document.getElementById("scale");
+		viewer.mapNameSpan = document.getElementById("map-name");
+		viewer.setMapInfo(mapInfo);
+		if( window.location.hash ) {
+			let fragmentId = window.location.hash.substr(1);
+			let parts = fragmentId.split('&');
+			for( let p in parts ) {
+				let kv = parts[p].split('=');
+				if( kv.length == 2 ) {
+					if( kv[0] == 'mapName' ) {
+						viewer.goToMap(kv[1]);
+					} else if( kv[0] == 'scale' ) {
+						viewer.setScale(+kv[1]);
+					}
+				}
+			}
+		}
+		viewer.updateView();
+		window.addEventListener('mousemove', viewer.onMouseMove.bind(viewer));
+		window.addEventListener('keydown', viewer.onKey.bind(viewer));
+		window.addEventListener('wheel', viewer.onWheel.bind(viewer));
+	})();
+</script>  
+  
+</body>
+</html>
