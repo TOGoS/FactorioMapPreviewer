@@ -53,7 +53,7 @@ html, body {
 			for( let s in Viewer.standardScales ) {
 				let scale = Viewer.standardScales[s];
 				scales[scale] = {
-					imagePath: mapName + "/" + mapName + ".scale" + Viewer.formatScale(scale) + ".png"
+					imagePath: "map-previews/" + mapName + "/" + mapName + ".offset0x0.scale" + Viewer.formatScale(scale) + ".png"
 				};
 			}
 			mapInfo[mapName] = { scales };
