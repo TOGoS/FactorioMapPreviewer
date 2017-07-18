@@ -1,14 +1,17 @@
 #!/bin/bash
 
-set -xeuo pipefail
+set -euo pipefail
 
+. "$(dirname "$0")/initvars.sh"
 
-gitref=$(cat .git/$(cat .git/HEAD | sed 's/ref: //'))
-vername=$gitref
-seed=1
+overwrite_existing_output=1
+print_preview_image_urls=
+vername=
 verbose_flag=
 verbose=
-scales="000.5 001.0 002.0 004.0 008.0 016.0 032.0 100.0"
+# scales="000.5 001.0 002.0 004.0 008.0 016.0 032.0 100.0"
+scales=004.0
+offset=0,0
 
 while [ $# -gt 0 ]
 do
@@ -16,7 +19,7 @@ do
     shift
     case $arg in
 	--seed)
-	    seed="$1"
+	    mapgen_seed="$1"
 	    shift
 	    ;;
 	--single-scale)
@@ -34,21 +37,44 @@ do
 	    vername="$1"
 	    shift
 	    ;;
+	--offset)
+	    offset="$1"
+	    shift
+	    ;;
+	--print-preview-image-urls)
+	    print_preview_image_urls=1
+	    ;;
+	--ignore-existing)
+	    overwrite_existing_output=
+	    ;;
 	*)
 	    echo "$0: Error: Unrecognized argument: $arg" >&2
 	    exit 1
     esac
 done
 
+if [ -z "$vername" ] ; then
+    vername="$(cd "$factorio_dir" && git rev-parse HEAD)"
+fi
+
+offsetstr=".offset$(echo "$offset" | sed -e 's/,/x/')"
+
 for scale in $scales
 do
-    basefile=map-previews/$vername.seed$seed/$vername.seed$seed.scale$scale
-    outfile=$basefile.png
-    logfile=$basefile.log
-    mkdir -p $(dirname $basefile)
-    if [ ! -f $outfile ] || [ ! -f $logfile ]
+    mapname="$vername.seed$mapgen_seed"
+    basefile="map-previews/${mapname}/${mapname}${offsetstr}.scale$scale"
+    outfile="${basefile}.png"
+    logfile="${basefile}.log"
+    mkdir -p "$(dirname "${basefile}")"
+    if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
     then
-	bin/debug/factorio $verbose_flag --map-gen-seed=$seed --generate-map-preview=$outfile --map-preview-scale=$scale --map-preview-size=1024 >$logfile 2>&1 && (
+	"$factorio_exe" $verbose_flag \
+			   --map-gen-seed="$mapgen_seed" \
+			   --generate-map-preview="$outfile" \
+			   --map-preview-scale="$scale" \
+			   --map-preview-size="$map_width" \
+			   --map-preview-offset="$offset" \
+			   >$"logfile" 2>&1 && (
 	    if [ -n "$verbose" ]
 	    then
 		cat "$logfile"
@@ -58,5 +84,10 @@ do
 	    cat "$logfile" >&2
 	    exit 1
 	)
+	if $print_preview_image_urls ; then
+	    echo "file://$(pwd)/${outfile}"
+	fi
+    else
+	echo "$0: $outfile already exists; skipping" >&2
     fi
 done
