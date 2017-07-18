@@ -62,7 +62,7 @@ offsetstr=".offset$(echo "$offset" | sed -e 's/,/x/')"
 for scale in $scales
 do
     mapname="$vername.seed$mapgen_seed"
-    basefile="map-previews/${mapname}/${mapname}${offsetstr}.scale$scale"
+    basefile="${map_previews_dir}/${mapname}/${mapname}${offsetstr}.scale$scale"
     outfile="${basefile}.png"
     logfile="${basefile}.log"
     mkdir -p "$(dirname "${basefile}")"
