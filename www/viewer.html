@@ -29,6 +29,7 @@ html, body {
 <div>Coords: <span id="coords">0,0</span></div>
 <div>Scale: <span id="scale">1</span></div>
 <div>Map: <span id="map-name">??</span></div>
+<div><span id="map-description">??</span></div>
 </div>
 
 <div id="map-container">
@@ -40,29 +41,37 @@ html, body {
 <script type="text/javascript">
 	(function() {
 		var mapInfo = {};
-		if( typeof mapNames == 'undefined' ) {
+		if( typeof mapList == 'undefined' ) {
 			alert(
 				"No map names; probably maplist.js is missing.  " +
 				"Generate some previews with scripts/generate-test-map-previews " +
 				"and then 'make map-previews/maplist.js'"
 			);
 		}
-		for( let n in mapNames ) {
-			let mapName = mapNames[n];
+		for( let n in mapList ) {
+			let mapEntry = mapList[n];
+			if( typeof mapEntry == 'string' ) {
+				mapEntry = { name: mapEntry };
+			}
+			if( !mapEntry.name ) mapEntry.name = n;
+			let mapName = mapEntry.name;
 			let scales = {};
 			for( let s in Viewer.standardScales ) {
 				let scale = Viewer.standardScales[s];
 				scales[scale] = {
 					imagePath: "map-previews/" + mapName + "/" + mapName + ".offset0x0.scale" + Viewer.formatScale(scale) + ".png"
 				};
+				
 			}
-			mapInfo[mapName] = { scales };
+			mapEntry.scales = scales;
+			mapInfo[mapEntry.name] = mapEntry;
 		}
 		var viewer = new Viewer;
 		viewer.mapImg = document.getElementById("map");
 		viewer.coordsSpan = document.getElementById("coords");
 		viewer.scaleSpan = document.getElementById("scale");
 		viewer.mapNameSpan = document.getElementById("map-name");
+		viewer.mapDescriptionSpan = document.getElementById("map-description");
 		viewer.setMapInfo(mapInfo);
 		if( window.location.hash ) {
 			let fragmentId = window.location.hash.substr(1);

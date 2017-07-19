@@ -120,6 +120,7 @@
 		if( !mapName ) throw new Error("No map at index " + this.currentMapIndex);
 		let map = this.maps[mapName];
 		if( !map ) throw new Error("No map with name '" + mapName + "'");
+		this.mapDescriptionSpan.firstChild.nodeValue = map.description || "";
 		let scaleInfo = map.scales[currentScale];
 		this.mapImg.src = scaleInfo.imagePath;
 		if( window.history ) {

@@ -41,7 +41,7 @@ readDir("map-previews").then( (entries) => {
 	}
 	return prom.then( () => names );
 }).then( names => {
-	process.stdout.write("window.mapNames = "+JSON.stringify(names, null, "\t")+";\n");
+	process.stdout.write("window.mapList = "+JSON.stringify(names, null, "\t")+";\n");
 }).catch( (err) => {
 	process.stderr.write(err.stack);
 	process.exitCode = 1;
