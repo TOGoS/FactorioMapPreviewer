@@ -8,10 +8,10 @@ factorio_exe ?= ${factorio_dir}/bin/debug/factorio
 factorio_test_exe ?= ${factorio_dir}/bin/debug/test
 
 ${factorio_exe}: $(shell find ${factorio_dir}/src)
-	bin/rebuild-factorio
+	make -C "${factorio_dir}"
 
 ${factorio_test_exe}: $(shell find ${factorio_dir}/src)
-	bin/rebuild-factorio test
+	make -C "${factorio_dir}" test
 
 test-factorio: ${factorio_test_exe}
 	${factorio_test_exe}
