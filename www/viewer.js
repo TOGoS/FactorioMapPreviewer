@@ -92,6 +92,8 @@
 	Viewer.prototype.onWheel = function( wheelEvent ) {
 		if( wheelEvent.deltaY > 0 ) this.zoomOut();
 		if( wheelEvent.deltaY < 0 ) this.zoomIn();
+		wheelEvent.preventDefault();
+		wheelEvent.stopPropagation();
 	};
 	Viewer.prototype.onKey = function( keyEvent ) {
 		if( keyEvent.keyCode == 38 || keyEvent.keyCode == 87 ) {

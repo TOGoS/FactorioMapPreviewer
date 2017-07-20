@@ -92,7 +92,7 @@ html, body {
 		viewer.updateView();
 		window.addEventListener('mousemove', viewer.onMouseMove.bind(viewer));
 		window.addEventListener('keydown', viewer.onKey.bind(viewer));
-		window.addEventListener('wheel', viewer.onWheel.bind(viewer));
+		viewer.mapImg.addEventListener('wheel', viewer.onWheel.bind(viewer));
 	})();
 </script>  
   
