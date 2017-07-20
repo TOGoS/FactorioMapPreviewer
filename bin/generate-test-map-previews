@@ -70,6 +70,8 @@ map_name="$vername.seed$mapgen_seed"
 map_dir="${map_previews_dir}/${map_name}"
 map_info_file="${map_dir}/map-info.json"
 
+mkdir -p "$map_dir"
+
 if [ -n "$map_description" ] ; then
     jq -n '{description: $description}' --arg description "$map_description" > "$map_info_file"
 fi
@@ -79,7 +81,6 @@ do
     basefile="${map_dir}/${map_name}${offset_suffix}.scale$scale"
     outfile="${basefile}.png"
     logfile="${basefile}.log"
-    mkdir -p "$(dirname "${basefile}")"
     if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
     then
 	"$factorio_exe" $verbose_flag \
