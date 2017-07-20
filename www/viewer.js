@@ -45,6 +45,15 @@
 		}
 	};
 	Viewer.prototype.goToMap = function(mapName) {
+		if( typeof mapName == 'number' ) {
+			if( mapName == this.currentMapIndex ) return;
+			if( mapName < 0 ) mapName = 0;
+			if( mapName >= this.mapNames.length ) mapName = this.mapNames.length - 1;
+			this.currentMapIndex = mapName|0;
+			this.updateView();
+			return;
+		}
+		
 		if( mapName == this.mapNames[this.currentMapIndex] ) return;
 		let idx = this.mapNames.indexOf(mapName);
 		if( idx != -1 ) {
@@ -105,6 +114,18 @@
 		}
 		if( keyEvent.keyCode == 37 || keyEvent.keyCode == 65 ) {
 			this.alterMapIndex(-1);
+			keyEvent.preventDefault();
+			keyEvent.stopPropagation();
+			return;
+		}
+		if( keyEvent.keyCode == 35 ) {
+			this.goToMap(this.mapNames.length-1);
+			keyEvent.preventDefault();
+			keyEvent.stopPropagation();
+			return;
+		}
+		if( keyEvent.keyCode == 36 ) {
+			this.goToMap(0);
 			keyEvent.preventDefault();
 			keyEvent.stopPropagation();
 			return;
