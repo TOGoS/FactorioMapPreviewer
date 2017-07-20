@@ -6,15 +6,15 @@ set -euo pipefail
 
 cd "$factorio_dir"
 
-if make ; then exit 0 ; fi
+if make "$@" ; then exit 0 ; fi
 
-echo "$0: Regular build didn't work, trying 'make clean && make'" 2>&1
+echo "$0: Regular build didn't work, trying 'make clean && make $@'" 2>&1
 
-if make clean && make ; then exit 0 ; fi
+if make clean && make "$@" ; then exit 0 ; fi
 
-echo "$0: 'make clean && make' didn't work, trying 'make reset && make'" 2>&1
+echo "$0: 'make clean && make' didn't work, trying 'make reset && make $@'" 2>&1
 
-if make reset && make ; then exit 0 ; fi
+if make reset && make "$@" ; then exit 0 ; fi
 
 echo "$0:"'Failed to build factorio by any method I know.  Sad!' 2>&1
 exit 1

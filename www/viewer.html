@@ -29,7 +29,8 @@ html, body {
 <div>Coords: <span id="coords">0,0</span></div>
 <div>Scale: <span id="scale">1</span></div>
 <div>Map: <span id="map-name">??</span></div>
-<div><span id="map-description">??</span></div>
+<div>CTime: <span id="map-ctime">??</span></div>
+<p id="map-description">??</p>
 </div>
 
 <div id="map-container">
@@ -71,6 +72,7 @@ html, body {
 		viewer.coordsSpan = document.getElementById("coords");
 		viewer.scaleSpan = document.getElementById("scale");
 		viewer.mapNameSpan = document.getElementById("map-name");
+		viewer.mapCTimeSpan = document.getElementById("map-ctime");
 		viewer.mapDescriptionSpan = document.getElementById("map-description");
 		viewer.setMapInfo(mapInfo);
 		if( window.location.hash ) {
