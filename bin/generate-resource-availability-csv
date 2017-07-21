@@ -90,7 +90,7 @@ const forWriteStream = function(name, callback) {
 
 
 const mapNameRegex = /([^\/]*?)(?:\.scale(.*))?\.log$/;
-const totesRegex = /Total ([\w\-]+): (.*)$/;
+const totesRegex = /Total ([\w\-]+):\s+(.*)$/;
 
 let targetResourceName = undefined;
 let outfilePrefix = undefined; // If undefined we'll output to STDOUT, in which case you'd better specify which resource you care about
