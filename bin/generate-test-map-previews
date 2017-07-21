@@ -3,6 +3,7 @@
 set -euo pipefail
 
 . "$(dirname "$0")/initvars.sh"
+. "$(dirname "$0")/../.map-preview-capabilities.sh"
 
 overwrite_existing_output=1
 print_preview_image_urls=
@@ -76,6 +77,13 @@ if [ -n "$map_description" ] ; then
     jq -n '{description: $description}' --arg description "$map_description" > "$map_info_file"
 fi
 
+if [ -n "$factorio_supports_report_quantities_argument" ]
+then
+    report_quantities_arg="--report-quantities=coal,copper-ore,iron-ore,stone,uranium-ore,biter-spawner,spitter-spawner"
+else
+    report_quantities_arg=""
+fi
+
 for scale in $scales
 do
     basefile="${map_dir}/${map_name}${offset_suffix}.scale$scale"
@@ -84,12 +92,13 @@ do
     if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
     then
 	"$factorio_exe" $verbose_flag \
-			   --map-gen-seed="$mapgen_seed" \
-			   --generate-map-preview="$outfile" \
-			   --map-preview-scale="$scale" \
-			   --map-preview-size="$map_width" \
-			   --map-preview-offset="$offset" \
-			   >"$logfile" 2>&1 && (
+			$report_quantities_arg \
+			--map-gen-seed="$mapgen_seed" \
+			--generate-map-preview="$outfile" \
+			--map-preview-scale="$scale" \
+			--map-preview-size="$map_width" \
+			--map-preview-offset="$offset" \
+			>"$logfile" 2>&1 && (
 	    if [ -n "$verbose" ]
 	    then
 		cat "$logfile"

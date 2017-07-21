@@ -1,0 +1,6 @@
+#!/bin/bash
+
+help_output_file="$1"
+
+echo -n "factorio_supports_report_quantities_argument="
+if grep -- --report-quantities "$help_output_file" >/dev/null ; then echo "1" ; else echo "" ; fi
