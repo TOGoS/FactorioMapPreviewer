@@ -30,6 +30,7 @@ html, body {
 <div>Scale: <span id="scale">1</span></div>
 <div>Map: <span id="map-name">??</span></div>
 <div>CTime: <span id="map-ctime">??</span></div>
+<div>Tile properties: <span id="tile-properties-status">??</span></div>
 <p id="map-description">??</p>
 </div>
 
@@ -60,6 +61,7 @@ html, body {
 			for( let s in Viewer.standardScales ) {
 				let scale = Viewer.standardScales[s];
 				scales[scale] = {
+					tilePropertiesCsvPath: "map-previews/" + mapName + "/" + mapName + ".offset0x0.scale" + Viewer.formatScale(scale) + ".tile-properties.csv",
 					imagePath: "map-previews/" + mapName + "/" + mapName + ".offset0x0.scale" + Viewer.formatScale(scale) + ".png"
 				};
 				
@@ -74,6 +76,7 @@ html, body {
 		viewer.mapNameSpan = document.getElementById("map-name");
 		viewer.mapCTimeSpan = document.getElementById("map-ctime");
 		viewer.mapDescriptionSpan = document.getElementById("map-description");
+		viewer.tilePropertiesStatusSpan = document.getElementById("tile-properties-status");
 		viewer.setMapInfo(mapInfo);
 		if( window.location.hash ) {
 			let fragmentId = window.location.hash.substr(1);

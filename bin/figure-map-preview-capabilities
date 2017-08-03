@@ -2,5 +2,12 @@
 
 help_output_file="$1"
 
-echo -n "factorio_supports_report_quantities_argument="
-if grep -- --report-quantities "$help_output_file" >/dev/null ; then echo "1" ; else echo "" ; fi
+figure_capability() {
+    varname="$1"
+    arg="$2"
+    echo -n "${varname}="
+    if grep -- "$arg" "$help_output_file" >/dev/null ; then echo "1" ; else echo "" ; fi
+}
+
+figure_capability "factorio_supports_report_quantities_argument" "--report-quantities"
+figure_capability "factorio_supports_generating_tile_properties_csv" "generate-tile-properties-csv"

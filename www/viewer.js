@@ -5,6 +5,45 @@
 		}
 		return str;
 	};
+
+	function parseCsv(csv, rowCallback) {
+		let rows = csv.split("\n");
+		for( let r in rows ) {
+			let row = rows[r].split(",");
+			rowCallback(row);
+		}
+	}
+	
+	function TilePropertiesBuffer(headers, data) {
+		this.headers = headers;
+		this.data = Float32Array.from(data);
+	}
+	TilePropertiesBuffer.getAt = function(index) {
+		let props = {};
+		for( let i=0; i<this.headers.length; ++i ) {
+			props[this.headers[i]] = this.data[this.headers.length*index + i];
+		}
+		return props;
+	}
+	
+	function fetchTilePropertiesFromFile(url) {
+		return fetch(url).then( res => {
+			if( !res.ok ) return Promise.reject(new Error(res.status));
+			return res.text().then( csv => {
+				let headers = undefined;
+				let data = [];
+				parseCsv(csv, row => {
+					if( headers == undefined ) headers = row;
+					else {
+						for( let i=0; i<headers.length; ++i ) {
+							data.push(row[i]);
+						}
+					}
+				});
+				return new TilePropertiesBuffer(headers,data);
+			});
+		});
+	}
 	
 	/**
 	 * @param maps map name => { "scales" => { "0.5" => { "imagePath" => "foo/foo.scale0.5.png" } } }
@@ -14,8 +53,34 @@
 		this.coordsSpan = undefined;
 		this.scales = Viewer.standardScales;
 		this.currentScaleIndex = 1;
-		this.currentMapIndex = 0
+		this.currentMapIndex = this
 		this.cursorPixelPosition = [0,0];
+	};
+	Viewer.prototype.fetchTileProperties = function( mapName, scale ) {
+		let map = this.maps[mapName];
+		if( map == undefined ) return Promise.reject("No map "+mapName);
+		let scaleInfo = map.scales[scale];
+		if( scaleInfo == undefined ) return Promise.reject("No scale "+scale+" for map "+mapName);
+		if( scaleInfo.tilePropertiesCsvPath == undefined ) return Promise.reject("No tile properties CSV path for map "+mapName+" scale "+scale);
+		let tpProm = scaleInfo.tilePropertiesPromise;
+		if( tpProm ) return tpProm;
+		
+		scaleInfo.tilePropertiesStatus = {code:"loading", message:"Loading..."};
+		this.updateView();
+		
+		scaleInfo.tilePropertiesPromise = tpProm = fetchTilePropertiesFromFile(scaleInfo.tilePropertiesCsvPath);
+		tpProm.then( () => {
+			scaleInfo.tilePropertiesStatus = {code:"loaded", message:"Loaded!"};
+		}, (e) => {
+			scaleInfo.tilePropertiesStatus = {code:"error", message:"Error: "+e.message};
+		}).then( () => {
+			this.updateView();
+		});
+		
+		return tpProm;
+	};
+	Viewer.prototype.fetchTilePropertiesForCurrentView = function() {
+		return this.fetchTileProperties(this.mapNames[this.currentMapIndex], this.scales[this.currentScaleIndex]);
 	};
 	Viewer.prototype.setMapInfo = function( maps ) {
 		this.maps = maps;
@@ -35,13 +100,13 @@
 		this.currentMapIndex += delta;
 		while( this.currentMapIndex >= this.mapNames.length ) this.currentMapIndex -= this.mapNames.length;
 		while( this.currentMapIndex < 0 ) this.currentMapIndex += this.mapNames.length;
-		this.updateView();
+		this.mapChanged();
 	};
 	Viewer.prototype.setScale = function(scale) {
 		let idx = this.scales.indexOf(scale);
 		if( idx != -1 && idx != this.currentScaleIndex ) {
 			this.currentScaleIndex = idx;
-			this.updateView();
+			this.mapChanged();
 		}
 	};
 	Viewer.prototype.goToMap = function(mapName) {
@@ -50,7 +115,7 @@
 			if( mapName < 0 ) mapName = 0;
 			if( mapName >= this.mapNames.length ) mapName = this.mapNames.length - 1;
 			this.currentMapIndex = mapName|0;
-			this.updateView();
+			this.mapChanged();
 			return;
 		}
 		
@@ -58,19 +123,19 @@
 		let idx = this.mapNames.indexOf(mapName);
 		if( idx != -1 ) {
 			this.currentMapIndex = idx;
-			this.updateView();
+			this.mapChanged();
 		}
 	};
 	Viewer.prototype.zoomIn = function() {
 		if( this.currentScaleIndex > 0 ) {
 			--this.currentScaleIndex;
-			this.updateView();
+			this.mapChanged();
 		}
 	};
 	Viewer.prototype.zoomOut = function() {
 		if( this.currentScaleIndex < this.scales.length-1 ) {
 			++this.currentScaleIndex;
-			this.updateView();
+			this.mapChanged();
 		}
 	};
 	
@@ -96,6 +161,10 @@
 		wheelEvent.stopPropagation();
 	};
 	Viewer.prototype.onKey = function( keyEvent ) {
+		if( keyEvent.keyCode == 73 ) {
+			this.fetchTilePropertiesForCurrentView();
+			return;
+		}
 		if( keyEvent.keyCode == 38 || keyEvent.keyCode == 87 ) {
 		   this.zoomIn();
 			keyEvent.preventDefault();
@@ -134,6 +203,10 @@
 		}
 		console.log("Key "+keyEvent.keyCode);
 	};
+	Viewer.prototype.mapChanged = function() {
+		//this.fetchTilePropertiesForCurrentView();
+		this.updateView();
+	};
 	Viewer.prototype.updateView = function() {
 		this.updateCursorCoords();
 		let currentScale = this.scales[this.currentScaleIndex];
@@ -146,7 +219,23 @@
 		this.mapCTimeSpan.firstChild.nodeValue = map.creationTime ? ("" + map.creationTime) : "";
 		this.mapDescriptionSpan.firstChild.nodeValue = map.description || "";
 		let scaleInfo = map.scales[currentScale];
-		this.mapImg.src = scaleInfo.imagePath;
+		if( scaleInfo ) {
+			let tpLoadStat = scaleInfo.tilePropertiesStatus || {code:"not-loaded", message:"Not loaded; hit 'i' to load"};
+			let tpLoadColor = 'inherit';
+			switch( tpLoadStat.code ) {
+			case 'error': tpLoadColor = 'red'; break;
+			case 'loaded': tpLoadColor = 'lime'; break;
+			case 'loading': tpLoadColor = 'yellow'; break;
+			}
+			
+			this.tilePropertiesStatusSpan.firstChild.nodeValue = tpLoadStat.message;
+			this.tilePropertiesStatusSpan.style.color = tpLoadColor;
+			
+			this.mapImg.src = scaleInfo.imagePath;
+		} else {
+			this.tilePropertiesStatusSpan.firstChild.nodeValue = "???";
+			this.mapImg.src = "data:text/plain,no image at scale "+currentScale;
+		}
 		if( window.history ) {
 			window.history.replaceState({ mapName, scale: currentScale }, "", "#mapName="+mapName+"&scale="+currentScale);
 		}

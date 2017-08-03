@@ -89,10 +89,20 @@ do
     basefile="${map_dir}/${map_name}${offset_suffix}.scale$scale"
     outfile="${basefile}.png"
     logfile="${basefile}.log"
+    tile_properties_csv_file="${basefile}.tile-properties.csv"
+
+    if [ -n "$factorio_supports_generating_tile_properties_csv" ]
+    then
+	generate_tile_properties_csv_arg="--generate-tile-properties-csv=$tile_properties_csv_file"
+    else
+	generate_tile_properties_csv_arg=""
+    fi
+
     if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
     then
 	"$factorio_exe" $verbose_flag \
 			$report_quantities_arg \
+			$generate_tile_properties_csv_arg \
 			--map-gen-seed="$mapgen_seed" \
 			--generate-map-preview="$outfile" \
 			--map-preview-scale="$scale" \
