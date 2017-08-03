@@ -32,6 +32,7 @@ html, body {
 <div>CTime: <span id="map-ctime">??</span></div>
 <div>Tile properties: <span id="tile-properties-status">??</span></div>
 <p id="map-description">??</p>
+<table id="tile-properties"></table>
 </div>
 
 <div id="map-container">
@@ -77,6 +78,7 @@ html, body {
 		viewer.mapCTimeSpan = document.getElementById("map-ctime");
 		viewer.mapDescriptionSpan = document.getElementById("map-description");
 		viewer.tilePropertiesStatusSpan = document.getElementById("tile-properties-status");
+		viewer.tilePropertiesTable = document.getElementById("tile-properties");
 		viewer.setMapInfo(mapInfo);
 		if( window.location.hash ) {
 			let fragmentId = window.location.hash.substr(1);

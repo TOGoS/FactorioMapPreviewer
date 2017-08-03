@@ -18,7 +18,7 @@
 		this.headers = headers;
 		this.data = Float32Array.from(data);
 	}
-	TilePropertiesBuffer.getAt = function(index) {
+	TilePropertiesBuffer.prototype.getPropertiesAt = function(index) {
 		let props = {};
 		for( let i=0; i<this.headers.length; ++i ) {
 			props[this.headers[i]] = this.data[this.headers.length*index + i];
@@ -54,7 +54,7 @@
 		this.scales = Viewer.standardScales;
 		this.currentScaleIndex = 1;
 		this.currentMapIndex = this
-		this.cursorPixelPosition = [0,0];
+		this.cursorPixelPosition = {x:0, y:0};
 	};
 	Viewer.prototype.fetchTileProperties = function( mapName, scale ) {
 		let map = this.maps[mapName];
@@ -69,8 +69,9 @@
 		this.updateView();
 		
 		scaleInfo.tilePropertiesPromise = tpProm = fetchTilePropertiesFromFile(scaleInfo.tilePropertiesCsvPath);
-		tpProm.then( () => {
+		tpProm.then( (tileProps) => {
 			scaleInfo.tilePropertiesStatus = {code:"loaded", message:"Loaded!"};
+			scaleInfo.tileProperties = tileProps;
 		}, (e) => {
 			scaleInfo.tilePropertiesStatus = {code:"error", message:"Error: "+e.message};
 		}).then( () => {
@@ -140,19 +141,11 @@
 	};
 	
 	Viewer.prototype.onMouseMove = function( mmEvt ) {
-		this.cursorPixelPosition = [
-			(mmEvt.clientX - this.mapImg.offsetLeft) - 512,
-			(mmEvt.clientY - this.mapImg.offsetTop) - 512
-		];
-		this.updateCursorCoords();
-	};
-	Viewer.prototype.updateCursorCoords = function() {
-		let scale = this.scales[this.currentScaleIndex];
-		let worldOffsetX = this.cursorPixelPosition[0] * scale;
-		let worldOffsetY = this.cursorPixelPosition[1] * scale;
-		if( this.coordsSpan ) {
-			this.coordsSpan.firstChild.nodeValue = worldOffsetX + "," + worldOffsetY;
-		}
+		this.cursorPixelPosition = {
+			x: (mmEvt.clientX - this.mapImg.offsetLeft),
+			y: (mmEvt.clientY - this.mapImg.offsetTop)
+		};
+		this.updateView();
 	};
 	Viewer.prototype.onWheel = function( wheelEvent ) {
 		if( wheelEvent.deltaY > 0 ) this.zoomOut();
@@ -205,7 +198,20 @@
 	};
 	Viewer.prototype.mapChanged = function() {
 		//this.fetchTilePropertiesForCurrentView();
+		let currentScale = this.scales[this.currentScaleIndex];
+		let mapName = this.mapNames[this.currentMapIndex];
+		if( window.history ) {
+			window.history.replaceState({ mapName, scale: currentScale }, "", "#mapName="+mapName+"&scale="+currentScale);
+		}
 		this.updateView();
+	};
+	Viewer.prototype.updateCursorCoords = function() {
+		let scale = this.scales[this.currentScaleIndex];
+		let worldOffsetX = (this.cursorPixelPosition.x - 512) * scale;
+		let worldOffsetY = (this.cursorPixelPosition.y - 512) * scale;
+		if( this.coordsSpan ) {
+			this.coordsSpan.firstChild.nodeValue = worldOffsetX + "," + worldOffsetY;
+		}
 	};
 	Viewer.prototype.updateView = function() {
 		this.updateCursorCoords();
@@ -232,12 +238,41 @@
 			this.tilePropertiesStatusSpan.style.color = tpLoadColor;
 			
 			this.mapImg.src = scaleInfo.imagePath;
+
+			if( scaleInfo.tileProperties ) {
+				let idx = this.cursorPixelPosition.y * 1024 + this.cursorPixelPosition.x;
+				this.updateTilePropertiesInfo(scaleInfo.tileProperties.getPropertiesAt(idx));
+			} else {
+				this.updateTilePropertiesInfo(undefined);
+			}
 		} else {
 			this.tilePropertiesStatusSpan.firstChild.nodeValue = "???";
 			this.mapImg.src = "data:text/plain,no image at scale "+currentScale;
+			this.tilePropertiesTable.style.display = 'none';
 		}
-		if( window.history ) {
-			window.history.replaceState({ mapName, scale: currentScale }, "", "#mapName="+mapName+"&scale="+currentScale);
+	};
+	Viewer.prototype.updateTilePropertiesInfo = function(props) {
+		if( props == undefined ) {
+			this.tilePropertiesTable.style.display = 'none';
+			return;
+		}
+		
+		this.tilePropertiesTable.style.display = null; // Normal!
+		// if( this.tilePropertiesCells == undefined ) this.tilePropertiesCells = {};
+		while( this.tilePropertiesTable.firstChild ) {
+			this.tilePropertiesTable.removeChild(this.tilePropertiesTable.firstChild);
+		}
+		for( let k in props ) {
+			let row = document.createElement("tr");
+			let label = document.createElement("th");
+			label.setAttribute('align','left');
+			label.appendChild(document.createTextNode(k));
+			row.appendChild(label);
+			let valueCell = document.createElement("td");
+			valueCell.setAttribute('align','right');
+			valueCell.appendChild(document.createTextNode((+props[k]).toFixed(4)));
+			row.appendChild(valueCell);
+			this.tilePropertiesTable.appendChild(row);
 		}
 	};
 
