@@ -53,7 +53,7 @@
 		this.coordsSpan = undefined;
 		this.scales = Viewer.standardScales;
 		this.currentScaleIndex = 1;
-		this.currentMapIndex = this
+		this.currentMapIndex = 0;
 		this.cursorPixelPosition = {x:0, y:0};
 	};
 	Viewer.prototype.fetchTileProperties = function( mapName, scale ) {
