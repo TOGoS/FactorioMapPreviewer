@@ -55,6 +55,7 @@
 		this.currentScaleIndex = 1;
 		this.currentMapIndex = 0;
 		this.cursorPixelPosition = {x:0, y:0};
+		this.imageRef = undefined;
 	};
 	Viewer.prototype.fetchTileProperties = function( mapName, scale ) {
 		let map = this.maps[mapName];
@@ -236,8 +237,10 @@
 			
 			this.tilePropertiesStatusSpan.firstChild.nodeValue = tpLoadStat.message;
 			this.tilePropertiesStatusSpan.style.color = tpLoadColor;
-			
-			this.mapImg.src = scaleInfo.imagePath;
+
+			if( scaleInfo.imagePath !== this.imageRef ) {
+				this.imageRef = this.mapImg.src = scaleInfo.imagePath;
+			}
 
 			if( scaleInfo.tileProperties ) {
 				let idx = this.cursorPixelPosition.y * 1024 + this.cursorPixelPosition.x;
