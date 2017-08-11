@@ -20,7 +20,7 @@ do
     shift
     case $arg in
 	--seed)
-	    mapgen_seed="$1"
+	    mapgen_seeds="$1"
 	    shift
 	    ;;
 	--single-scale)
@@ -67,61 +67,64 @@ fi
 
 offset_suffix=".offset$(echo "$offset" | sed -e 's/,/x/')"
 
-map_name="$vername.seed$mapgen_seed"
-map_dir="${map_previews_dir}/${map_name}"
-map_info_file="${map_dir}/map-info.json"
-
-mkdir -p "$map_dir"
-
-if [ -n "$map_description" ] ; then
-    jq -n '{description: $description}' --arg description "$map_description" > "$map_info_file"
-fi
-
-if [ -n "$factorio_supports_report_quantities_argument" ]
-then
-    report_quantities_arg="--report-quantities=coal,copper-ore,iron-ore,stone,uranium-ore,biter-spawner,spitter-spawner"
-else
-    report_quantities_arg=""
-fi
-
-for scale in $scales
+for mapgen_seed in $mapgen_seeds
 do
-    basefile="${map_dir}/${map_name}${offset_suffix}.scale$scale"
-    outfile="${basefile}.png"
-    logfile="${basefile}.log"
-    tile_properties_csv_file="${basefile}.tile-properties.csv"
-
-    if [ -n "$factorio_supports_generating_tile_properties_csv" ]
-    then
-	generate_tile_properties_csv_arg="--generate-tile-properties-csv=$tile_properties_csv_file"
-    else
-	generate_tile_properties_csv_arg=""
+    map_name="$vername.seed$mapgen_seed"
+    map_dir="${map_previews_dir}/${map_name}"
+    map_info_file="${map_dir}/map-info.json"
+    
+    mkdir -p "$map_dir"
+    
+    if [ -n "$map_description" ] ; then
+	jq -n '{description: $description}' --arg description "$map_description" > "$map_info_file"
     fi
-
-    if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
+    
+    if [ -n "$factorio_supports_report_quantities_argument" ]
     then
-	"$factorio_exe" $verbose_flag \
-			$report_quantities_arg \
-			$generate_tile_properties_csv_arg \
-			--map-gen-seed="$mapgen_seed" \
-			--generate-map-preview="$outfile" \
-			--map-preview-scale="$scale" \
-			--map-preview-size="$map_width" \
-			--map-preview-offset="$offset" \
-			>"$logfile" 2>&1 && (
-	    if [ -n "$verbose" ]
-	    then
-		cat "$logfile"
-	    fi
-	) || (
-	    echo "Error: Failed to generate $outfile" >&2
-	    cat "$logfile" >&2
-	    exit 1
-	)
-	if [ -n "$print_preview_image_urls" ] ; then
-	    echo "file://$(pwd)/${outfile}"
+	report_quantities_arg="--report-quantities=coal,copper-ore,iron-ore,stone,uranium-ore,biter-spawner,spitter-spawner"
+    else
+	report_quantities_arg=""
+    fi
+    
+    for scale in $scales
+    do
+	basefile="${map_dir}/${map_name}${offset_suffix}.scale$scale"
+	outfile="${basefile}.png"
+	logfile="${basefile}.log"
+	tile_properties_csv_file="${basefile}.tile-properties.csv"
+	
+	if [ -n "$factorio_supports_generating_tile_properties_csv" ]
+	then
+	    generate_tile_properties_csv_arg="--generate-tile-properties-csv=$tile_properties_csv_file"
+	else
+	    generate_tile_properties_csv_arg=""
 	fi
-    else
-	echo "$0: $outfile already exists; skipping" >&2
-    fi
+	
+	if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
+	then
+	    "$factorio_exe" $verbose_flag \
+			    $report_quantities_arg \
+			    $generate_tile_properties_csv_arg \
+			    --map-gen-seed="$mapgen_seed" \
+			    --generate-map-preview="$outfile" \
+			    --map-preview-scale="$scale" \
+			    --map-preview-size="$map_width" \
+			    --map-preview-offset="$offset" \
+			    >"$logfile" 2>&1 && (
+		if [ -n "$verbose" ]
+		then
+		    cat "$logfile"
+		fi
+	    ) || (
+		echo "Error: Failed to generate $outfile" >&2
+		cat "$logfile" >&2
+		exit 1
+	    )
+	    if [ -n "$print_preview_image_urls" ] ; then
+		echo "file://$(pwd)/${outfile}"
+	    fi
+	else
+	    echo "$0: $outfile already exists; skipping" >&2
+	fi
+    done
 done
