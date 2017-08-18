@@ -1,6 +1,6 @@
 all: latest-map www/maplist.js resource-availability
 
-.PHONY: all test-factorio
+.PHONY: all latest-map multiple-maps test-factorio
 .DELETE_ON_ERROR:
 
 factorio_dir ?= ../Factorio
@@ -33,3 +33,8 @@ resource-availability: latest-map $(shell find map-previews -name '*.log')
 	mkdir -p "$@"
 	bin/generate-resource-availability-csv --outfile-prefix="$@/"
 	touch "$@"
+
+multiple-maps: ${factorio_exe} ${factorio_data} bin/generate-test-map-previews .map-preview-capabilities.sh
+	bin/generate-test-map-previews --seed "1 11 21 31 41 51 61 71 81 91 101 111 121 131 141 151 161 171 181 191" \
+		--ignore-existing --description-from-commit \
+		--after-each-map "${MAKE}"
