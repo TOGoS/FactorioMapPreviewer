@@ -24,6 +24,10 @@ do
 	    mapgen_seeds="$1"
 	    shift
 	    ;;
+	--map-gen-settings)
+	    mapgen_settings_file="$1"
+	    shift
+	    ;;
 	--single-scale)
 	    scales=001.0
 	    ;;
@@ -76,6 +80,11 @@ fi
 
 offset_suffix=".offset$(echo "$offset" | sed -e 's/,/x/')"
 
+mapgen_settings_arg=""
+if [ -n "$mapgen_settings_file" ] ; then
+    mapgen_settings_arg="--map-gen-settings=$mapgen_settings_file"
+fi
+
 slope_shading_arg=""
 if [ -n "$factorio_supports_slope_shading" ] ; then
     slope_shading_arg="--slope-shading=${slope_shading}"
@@ -117,6 +126,7 @@ do
 	if [ ! -f "$outfile" ] || [ ! -f "$logfile" ] || [ -n "$overwrite_existing_output" ]
 	then
 	    "$factorio_exe" $verbose_flag \
+			    "$mapgen_settings_arg" \
 			    $slope_shading_arg \
 			    $report_quantities_arg \
 			    $generate_tile_properties_csv_arg \
