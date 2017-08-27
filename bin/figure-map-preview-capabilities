@@ -11,3 +11,4 @@ figure_capability() {
 
 figure_capability "factorio_supports_report_quantities_argument" "--report-quantities"
 figure_capability "factorio_supports_generating_tile_properties_csv" "generate-tile-properties-csv"
+figure_capability "factorio_supports_slope_shading" "--slope-shading"
