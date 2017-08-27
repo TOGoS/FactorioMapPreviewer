@@ -14,6 +14,7 @@ scales="000.5 001.0 002.0 004.0 008.0 016.0 032.0 100.0"
 offset=0,0
 map_description=
 after_each_map=
+name_postfix=
 
 while [ $# -gt 0 ]
 do
@@ -45,6 +46,10 @@ do
 	    ;;
 	-n)
 	    vername="$1"
+	    shift
+	    ;;
+	--name-postfix)
+	    name_postfix="$1"
 	    shift
 	    ;;
 	--m)
@@ -92,7 +97,7 @@ fi
 
 for mapgen_seed in $mapgen_seeds
 do
-    map_name="$vername.seed$mapgen_seed"
+    map_name="$vername${name_postfix}.seed$mapgen_seed"
     map_dir="${map_previews_dir}/${map_name}"
     map_info_file="${map_dir}/map-info.json"
     
