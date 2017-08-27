@@ -141,6 +141,9 @@ do
 	else
 	    echo "$0: $outfile already exists; skipping" >&2
 	fi
+	# Either way touch the directory so that regenerating the msp list
+	# puts it in the right order:
+	touch "$map_dir"
     done
 
     if [ -n "$after_each_map" ] ; then
