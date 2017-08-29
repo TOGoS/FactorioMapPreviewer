@@ -37,4 +37,4 @@ resource-availability: latest-map $(shell find map-previews -name '*.log')
 multiple-maps: ${factorio_exe} ${factorio_data} bin/generate-test-map-previews .map-preview-capabilities.sh
 	bin/generate-test-map-previews --seed "1 11 21 31 41 51 61 71 81 91 101 111 121 131 141 151 161 171 181 191" \
 		--ignore-existing --description-from-commit \
-		--after-each-map "${MAKE}"
+		--after-each-map "${MAKE} www/maplist.js"
